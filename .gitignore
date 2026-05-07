@@ -1,0 +1,38 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+
+# Auto-generated IDE/project files
+*.csproj
+*.sln
+*.slnx
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Visual Studio / VS Code / Rider
+.vs/
+.vscode/
+.idea/
+*.DotSettings.user
+
+# Unity cache/meta noise
+Assets/AssetStoreTools*
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
