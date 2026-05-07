@@ -101,7 +101,7 @@ Unity проект развиен од: Матеј Стефановски 243103
 
 ### 4.1 Изглед на играта
 
-<img width="1919" height="1097" alt="Igra" src="https://github.com/user-attachments/assets/e244ee2f-112e-44db-b088-0f6eba7211f9" />
+<img width="1919" height="1097" alt="Igra" src="https://github.com/user-attachments/assets/475809bd-7a3f-48ae-b4d1-1247d0b86eed" />
 
 ### 4.2 Кратко упатство
 1. Отворете ја играта во Unity и притиснете и притиснете `Space` за да започне партијата.
