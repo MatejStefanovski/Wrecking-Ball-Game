@@ -1,5 +1,6 @@
-using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.UI;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -7,12 +8,17 @@ using UnityEditor;
 [ExecuteAlways]
 public class UIManager : MonoBehaviour
 {
+    [Header("UI References")]
     [SerializeField] private Text timerText;
     [SerializeField] private Text blocksText;
+    [SerializeField] private Text levelText;
     [SerializeField] private GameObject winScreen;
     [SerializeField] private GameObject gameOverScreen;
-    [Header("Auto UI Objects")]
+
+    [Header("Settings")]
     [SerializeField] private bool autoCreateUiObjects = true;
+
+    private static Font cachedFont;
 
 #if UNITY_EDITOR
     [InitializeOnLoadMethod]
@@ -20,12 +26,13 @@ public class UIManager : MonoBehaviour
     {
         EditorApplication.delayCall += () =>
         {
-            if (Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            if (Application.isPlaying ||
+                EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 return;
             }
 
-            if (FindFirstObjectByType<UIManager>() != null)
+            if (Object.FindAnyObjectByType<UIManager>() != null)
             {
                 return;
             }
@@ -39,21 +46,13 @@ public class UIManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureRuntimeUiManager()
     {
-        if (FindFirstObjectByType<UIManager>() != null)
+        if (Object.FindAnyObjectByType<UIManager>() != null)
         {
             return;
         }
 
         GameObject go = new GameObject("UIManager");
         go.AddComponent<UIManager>();
-    }
-
-    private void OnEnable()
-    {
-        if (autoCreateUiObjects)
-        {
-            EnsureUiObjects();
-        }
     }
 
     private void Awake()
@@ -64,12 +63,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if (autoCreateUiObjects)
+        {
+            EnsureUiObjects();
+        }
+    }
+
     public void UpdateTimer(float timeValue)
     {
         if (timerText == null)
-        {
             return;
-        }
 
         int displaySeconds = Mathf.CeilToInt(Mathf.Max(0f, timeValue));
         timerText.text = $"Time: {displaySeconds}";
@@ -78,9 +83,7 @@ public class UIManager : MonoBehaviour
     public void UpdateBlocksRemaining(int remaining)
     {
         if (blocksText == null)
-        {
             return;
-        }
 
         blocksText.text = $"Blocks: {Mathf.Max(0, remaining)}";
     }
@@ -88,44 +91,56 @@ public class UIManager : MonoBehaviour
     public void HideEndScreens()
     {
         if (winScreen != null)
-        {
             winScreen.SetActive(false);
-        }
 
         if (gameOverScreen != null)
-        {
             gameOverScreen.SetActive(false);
-        }
     }
 
     public void ShowEndScreen(bool isWin)
     {
         if (winScreen != null)
-        {
             winScreen.SetActive(isWin);
-        }
 
         if (gameOverScreen != null)
-        {
             gameOverScreen.SetActive(!isWin);
-        }
     }
 
+    public void UpdateLevel(int level)
+    {
+        if (levelText == null)
+            return;
+
+        levelText.text = $"Wins: {level}";
+    }
     private void EnsureUiObjects()
     {
-        Canvas canvas = FindFirstObjectByType<Canvas>();
+        Canvas canvas = Object.FindAnyObjectByType<Canvas>();
+
         if (canvas == null)
         {
             GameObject canvasGo = new GameObject("GameUI");
+
             canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
             CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+
             canvasGo.AddComponent<GraphicRaycaster>();
         }
-        else
+
+        if (levelText == null)
         {
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            levelText = CreateText(
+                "LevelText",
+                canvas.transform,
+                new Vector2(120f, -110f),
+                "Wins: 0",
+                26,
+                TextAnchor.MiddleLeft
+            );
         }
 
         canvas.overrideSorting = true;
@@ -133,48 +148,78 @@ public class UIManager : MonoBehaviour
 
         if (timerText == null)
         {
-            timerText = CreateText("TimerText", canvas.transform, new Vector2(120f, -30f), "Time: 60", 26, TextAnchor.MiddleLeft);
+            timerText = CreateText(
+                "TimerText",
+                canvas.transform,
+                new Vector2(120f, -30f),
+                "Time: 60",
+                26,
+                TextAnchor.MiddleLeft
+            );
         }
 
         if (blocksText == null)
         {
-            blocksText = CreateText("BlocksText", canvas.transform, new Vector2(120f, -65f), "Blocks: 0", 26, TextAnchor.MiddleLeft);
+            blocksText = CreateText(
+                "BlocksText",
+                canvas.transform,
+                new Vector2(120f, -70f),
+                "Blocks: 0",
+                26,
+                TextAnchor.MiddleLeft
+            );
         }
 
         if (winScreen == null)
         {
-            winScreen = CreateCenterPanel("WinPanel", canvas.transform, "YOU WIN");
+            winScreen = CreateCenterPanel(
+                "WinPanel",
+                canvas.transform,
+                "YOU WIN"
+            );
         }
 
         if (gameOverScreen == null)
         {
-            gameOverScreen = CreateCenterPanel("GameOverPanel", canvas.transform, "GAME OVER");
+            gameOverScreen = CreateCenterPanel(
+                "GameOverPanel",
+                canvas.transform,
+                "GAME OVER"
+            );
         }
     }
 
-    private static Text CreateText(string name, Transform parent, Vector2 anchoredPosition, string value, int fontSize, TextAnchor align)
+    private static Text CreateText(
+        string name,
+        Transform parent,
+        Vector2 anchoredPosition,
+        string value,
+        int fontSize,
+        TextAnchor align)
     {
-        GameObject existing = GameObject.Find(name);
-        GameObject textGo = existing != null ? existing : new GameObject(name);
-        bool isNew = existing == null;
-        textGo.transform.SetParent(parent, false);
+        GameObject textGo = GameObject.Find(name);
+
+        if (textGo == null)
+        {
+            textGo = new GameObject(name);
+            textGo.transform.SetParent(parent, false);
+        }
 
         RectTransform rt = textGo.GetComponent<RectTransform>();
+
         if (rt == null)
         {
             rt = textGo.AddComponent<RectTransform>();
         }
 
-        if (isNew)
-        {
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = anchoredPosition;
-            rt.sizeDelta = new Vector2(280f, 40f);
-        }
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0f, 1f);
+        rt.anchoredPosition = anchoredPosition;
+        rt.sizeDelta = new Vector2(300f, 50f);
 
         Text text = textGo.GetComponent<Text>();
+
         if (text == null)
         {
             text = textGo.AddComponent<Text>();
@@ -185,71 +230,83 @@ public class UIManager : MonoBehaviour
         text.color = Color.white;
         text.alignment = align;
         text.text = value;
-        text.enabled = true;
         text.raycastTarget = false;
 
-        Image background = textGo.GetComponent<Image>();
-        if (background == null)
-        {
-            background = textGo.AddComponent<Image>();
-        }
-
-        background.color = new Color(0f, 0f, 0f, 0.35f);
         return text;
     }
 
-    private static GameObject CreateCenterPanel(string name, Transform parent, string label)
+    private static GameObject CreateCenterPanel(
+        string name,
+        Transform parent,
+        string label)
     {
-        GameObject panel = GameObject.Find(name);
-        GameObject panelGo = panel != null ? panel : new GameObject(name);
-        bool isNew = panel == null;
-        panelGo.transform.SetParent(parent, false);
+        GameObject panelGo = GameObject.Find(name);
 
-        RectTransform panelRt = panelGo.GetComponent<RectTransform>();
-        if (panelRt == null)
+        if (panelGo == null)
         {
-            panelRt = panelGo.AddComponent<RectTransform>();
+            panelGo = new GameObject(name);
+            panelGo.transform.SetParent(parent, false);
         }
 
-        if (isNew)
+        RectTransform rt = panelGo.GetComponent<RectTransform>();
+
+        if (rt == null)
         {
-            panelRt.anchorMin = new Vector2(0.5f, 0.5f);
-            panelRt.anchorMax = new Vector2(0.5f, 0.5f);
-            panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.sizeDelta = new Vector2(360f, 130f);
+            rt = panelGo.AddComponent<RectTransform>();
         }
 
-        Image panelImage = panelGo.GetComponent<Image>();
-        if (panelImage == null)
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(400f, 150f);
+
+        Image img = panelGo.GetComponent<Image>();
+
+        if (img == null)
         {
-            panelImage = panelGo.AddComponent<Image>();
+            img = panelGo.AddComponent<Image>();
         }
 
-        panelImage.color = new Color(0f, 0f, 0f, 0.75f);
+        img.color = new Color(0f, 0f, 0f, 0.75f);
 
-        Text labelText = CreateText($"{name}_Text", panelGo.transform, Vector2.zero, label, 44, TextAnchor.MiddleCenter);
-        if (isNew)
-        {
-            RectTransform labelRt = labelText.rectTransform;
-            labelRt.anchorMin = new Vector2(0.5f, 0.5f);
-            labelRt.anchorMax = new Vector2(0.5f, 0.5f);
-            labelRt.pivot = new Vector2(0.5f, 0.5f);
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = new Vector2(340f, 90f);
-        }
+        Text txt = CreateText(
+            name + "_Text",
+            panelGo.transform,
+            Vector2.zero,
+            label,
+            42,
+            TextAnchor.MiddleCenter
+        );
+
+        RectTransform txtRt = txt.rectTransform;
+        txtRt.anchorMin = new Vector2(0.5f, 0.5f);
+        txtRt.anchorMax = new Vector2(0.5f, 0.5f);
+        txtRt.pivot = new Vector2(0.5f, 0.5f);
+        txtRt.anchoredPosition = Vector2.zero;
+        txtRt.sizeDelta = new Vector2(360f, 100f);
 
         panelGo.SetActive(false);
+
         return panelGo;
     }
 
     private static Font GetBuiltinFont()
     {
-        Font arial = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        if (arial != null)
+        if (cachedFont != null)
         {
-            return arial;
+            return cachedFont;
         }
 
-        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        cachedFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        if (cachedFont == null)
+        {
+            Debug.LogError(
+                "Could not load built-in font. " +
+                "Try importing TMP Essentials."
+            );
+        }
+
+        return cachedFont;
     }
 }

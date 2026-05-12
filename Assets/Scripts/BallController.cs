@@ -28,6 +28,17 @@ public class BallController : MonoBehaviour
     private Vector3 followOffset;
     private bool launched;
     private Vector2 moveDirection;
+    public float BallSpeed
+    {
+        get => ballSpeed;
+
+        set
+        {
+            ballSpeed = Mathf.Max(1f, value);
+
+            Debug.Log("NEW BALL SPEED: " + ballSpeed);
+        }
+    }
 
     private int damageMultiplier = 1;
     private Color defaultColor;
