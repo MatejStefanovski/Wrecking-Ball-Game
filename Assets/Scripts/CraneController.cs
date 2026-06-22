@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 public class CraneController : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 6f;
+    [SerializeField] private float moveSpeed = 15f;
     [SerializeField] private SpriteRenderer craneRenderer;
     [SerializeField] private Sprite platformSprite;
     [SerializeField] private float xMin = -7.5f;
@@ -18,6 +18,11 @@ public class CraneController : MonoBehaviour
     private Sprite defaultSprite;
     private bool spriteDefaultCached;
 
+    public float MoveSpeed
+    {
+        get => moveSpeed;
+        set => moveSpeed = value;
+    }
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();

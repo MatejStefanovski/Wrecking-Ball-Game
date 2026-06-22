@@ -4398,9 +4398,11 @@ MonoBehaviour:
   baseStartTimeSeconds: 60
   minimumTimeSeconds: 15
   timeDecreasePerWin: 5
-  ballSpeedMultiplierPerWin: 1.2
+  ballSpeedMultiplierPerWin: 1.1
+  craneSpeedMultiplierPerWin: 1.1
   outOfBoundsY: -8
   ballController: {fileID: 1855352017}
+  craneController: {fileID: 0}
   uiManager: {fileID: 545109327}
   mainMenuSceneName: MainMenu
   winSfx: {fileID: 8300000, guid: 6c1d65ebb220695489ac11ad923eaa17, type: 3}

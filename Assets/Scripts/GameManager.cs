@@ -11,11 +11,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float minimumTimeSeconds = 15f;
     [SerializeField] private float timeDecreasePerWin = 5f;
 
-    [SerializeField] private float ballSpeedMultiplierPerWin = 1.2f;
+    [SerializeField] private float ballSpeedMultiplierPerWin = 1.1f;
+    [SerializeField] private float craneSpeedMultiplierPerWin = 1.1f;
 
     [SerializeField] private float outOfBoundsY = -8f;
 
     [SerializeField] private BallController ballController;
+    [SerializeField] private CraneController craneController;
     [SerializeField] private UIManager uiManager;
 
     [Header("Scenes")]
@@ -35,6 +37,7 @@ public class GameManager : MonoBehaviour
     // STATIC = survives scene reload
     private static int wonLevels = 0;
     private static float savedBallSpeed = -1f;
+    private static float savedCraneSpeed = -1f;
 
     private float currentTime;
     private int blocksRemaining;
@@ -66,6 +69,11 @@ public class GameManager : MonoBehaviour
             ballController = FindAnyObjectByType<BallController>();
         }
 
+        if (craneController == null)
+        {
+            craneController = FindAnyObjectByType<CraneController>();
+        }
+
         if (uiManager == null)
         {
             uiManager = FindAnyObjectByType<UIManager>();
@@ -77,6 +85,11 @@ public class GameManager : MonoBehaviour
             savedBallSpeed = ballController.BallSpeed;
         }
 
+        if (savedCraneSpeed < 0f && craneController != null)
+        {
+            savedCraneSpeed = craneController.MoveSpeed;
+        }
+
         // Calculate reduced time
         currentStartTime =
             Mathf.Max(
@@ -84,10 +97,15 @@ public class GameManager : MonoBehaviour
                 baseStartTimeSeconds - (wonLevels * timeDecreasePerWin)
             );
 
-        // Apply saved speed
+        // Apply saved speeds
         if (ballController != null)
         {
             ballController.BallSpeed = savedBallSpeed;
+        }
+
+        if (craneController != null)
+        {
+            craneController.MoveSpeed = savedCraneSpeed;
         }
 
         currentTime = currentStartTime;
@@ -108,6 +126,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("LEVELS WON: " + wonLevels);
         Debug.Log("CURRENT TIME LIMIT: " + currentStartTime);
         Debug.Log("CURRENT BALL SPEED: " + savedBallSpeed);
+        Debug.Log("CURRENT CRANE SPEED: " + savedCraneSpeed);
     }
 
     private void Update()
@@ -129,8 +148,8 @@ public class GameManager : MonoBehaviour
             {
                 wonLevels++;
 
-                // increase speed permanently
                 savedBallSpeed *= ballSpeedMultiplierPerWin;
+                savedCraneSpeed *= craneSpeedMultiplierPerWin;
 
                 SceneManager.LoadScene(
                     SceneManager.GetActiveScene().buildIndex
@@ -204,10 +223,8 @@ public class GameManager : MonoBehaviour
     {
         wonLevels = 0;
 
-        if (ballController != null)
-        {
-            savedBallSpeed = 11.5f;
-        }
+        savedBallSpeed = 11.5f;
+        savedCraneSpeed = 15f;
     }
 
     public void RegisterBlockDestroyed()
